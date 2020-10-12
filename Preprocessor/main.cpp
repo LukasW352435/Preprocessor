@@ -37,6 +37,10 @@ int processArg(int argc, char** argv, arg& args)
                 cout << e.what() << endl;
             }
         }
+        else if (arg[i].compare("-s") == 0) {
+            // spaces for #define
+            args.spacesBeforeAfterDefine = true;
+        }
         else
         {
             cout << "Unknown argv: " << arg[i] << endl;
@@ -62,7 +66,7 @@ void incI(int& i, int argc)
     }
 }
 
-void replaceIf(string& line, int lineNumber, list<def>& defs)
+void replaceIf(string& line, int lineNumber, list<def>& defs, bool spaces = false)
 {
     // process line and do replaces with defs
     for (list<def>::iterator it = defs.begin(); it != defs.end(); it++)
@@ -74,16 +78,18 @@ void replaceIf(string& line, int lineNumber, list<def>& defs)
             if (lineIndex != string::npos)
             {
                 // check for spaces
-                char s = line[lineIndex + it->key.size()];
-                if (!(lineIndex == 0 || line[lineIndex - 1] == ' '))
-                {
-                    lineIndex++;
-                    continue;
-                }
-                if (!(s == ' ' || s == '\n' || s == '\0'))
-                {
-                    lineIndex++;
-                    continue;
+                if (spaces) {
+                    char s = line[lineIndex + it->key.size()];
+                    if (!(lineIndex == 0 || line[lineIndex - 1] == ' '))
+                    {
+                        lineIndex++;
+                        continue;
+                    }
+                    if (!(s == ' ' || s == '\n' || s == '\0'))
+                    {
+                        lineIndex++;
+                        continue;
+                    }
                 }
 
                 // do the replace
@@ -112,7 +118,7 @@ int main(int argc, char** argv)
 
     while (getline(fileIn, line))
     {
-        replaceIf(line, lineNumber, defs);
+        replaceIf(line, lineNumber, defs, args.spacesBeforeAfterDefine);
 
         // check for definitions in the line
         if (line.size() > 8 && line.compare(0, 8, "#define ") == 0)

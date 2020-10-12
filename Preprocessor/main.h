@@ -3,7 +3,7 @@
 // -fi <string filename input>
 // -fo <string filename output>
 // -d <int debug level> // 0 nothing (default), 1 error, 2 warning, 3 information, 4 verbose 
-// -s // set it to enable, spaces
+// -s // spaces in front/back of define
 
 // #include
 // #define
@@ -34,4 +34,4 @@ int processArg(int argc, char** argv, arg& args);
 
 void incI(int& i, int argc);
 
-void replaceIf(string& line, int lineNumber, list<def>& defs);
+void replaceIf(string& line, int lineNumber, list<def>& defs, bool spaces);

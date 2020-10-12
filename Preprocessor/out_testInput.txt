@@ -5,7 +5,7 @@ a
 #undef4
 5
 sechs abc abc
-ffff abc 1234567
+ffff abc a234567
 .. #define asdf
 d#define adsa
 end
