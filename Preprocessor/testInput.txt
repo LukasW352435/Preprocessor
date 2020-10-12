@@ -1,0 +1,18 @@
+#define 1 a
+#undef
+1
+2
+#define3
+#undef4
+5
+#define 65 abc
+sechs 65 65
+ffff 65 1234567
+#undef 7
+.. #define asdf
+d#define adsa
+end
+#define 
+#define a
+#define b
+65

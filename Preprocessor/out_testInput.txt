@@ -1,0 +1,15 @@
+#undef
+a
+2
+#define3
+#undef4
+5
+sechs abc abc
+ffff abc 1234567
+.. #define asdf
+d#define adsa
+end
+#define 
+#define a
+#define b
+abc
