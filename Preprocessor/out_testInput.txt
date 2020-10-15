@@ -1,4 +1,6 @@
 #undef
+#undef  
+#undef  
 a
 2
 #define3
@@ -7,10 +9,15 @@ a
 sechs abc abc
 ffff abc a234567
 #undef 7
+#undef 7
 .. #define asdf
 d#define adsa
 end
+1
+11
 #define 
 #define a
+#define a
+#define b
 #define b
 abc

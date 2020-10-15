@@ -36,9 +36,7 @@ struct arg {
     string fileOutput;
     int debugLevel = 0;
     bool spacesBeforeAfterDefine = false;
-};
-
-arg args;
+} args;
 
 enum class DebugLevel : int8_t
 {
@@ -54,9 +52,7 @@ struct debugCount
     int warning = 0;
     int information = 0;
     int verbose = 0;
-};
-
-debugCount debugCounts;
+} debugCounts;
 
 void processArg(int argc, char** argv, arg& args);
 

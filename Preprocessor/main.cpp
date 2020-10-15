@@ -94,7 +94,7 @@ void replaceIf(string& line, int lineNumber, list<def>& defs, bool spaces = fals
                 // do the replace
                 line.replace(lineIndex, it->key.size(), it->value);
 
-                DEBUG(lineNumber << ". Replace lineIndex: " << lineIndex << " key: " << it->key << " value: " << it->value); VERBOSE
+                DEBUG(lineNumber << ". Replace lineIndex: " << lineIndex << " key: <" << it->key << "> value: <" << it->value << ">"); VERBOSE
             }
             else {
                 break;
@@ -159,15 +159,43 @@ int main(int argc, char** argv)
     list<def> defs;
     string line;
     int lineNumber = 1;
+    bool outPutLine = true;
 
     while (getline(fileIn, line))
     {
-        replaceIf(line, lineNumber, defs, args.spacesBeforeAfterDefine);
 
         // check for definitions in the line
-        if (line.size() > 8 && line.compare(0, 8, "#define ") == 0)
+        // TODO add #include
+        if (line.size() > 7 && line.compare(0, 7, "#undef ") == 0)
         {
             int afterKey = line.find(' ', 8);
+            if (afterKey == -1) {
+                DEBUG(lineNumber << ". No valid key found after #undef!"); ERROR
+                fileOut << line;
+                if (fileIn.eof())
+                    break;
+                fileOut << endl;
+            }
+            else
+            {
+                outPutLine = false;
+                string key = line.substr(7, afterKey - 7);
+                DEBUG(lineNumber << ". #undef key: <" << key << ">"); VERBOSE
+                
+                for (auto it = defs.begin(); it != defs.end(); ) {
+                    if ((it->key).compare(key) == 0) {
+                        it = defs.erase(it);
+                        DEBUG(lineNumber << ". Remove key: <" << key << ">"); VERBOSE
+                    }
+                    else
+                        it++;
+                }
+            }
+        }
+        replaceIf(line, lineNumber, defs, args.spacesBeforeAfterDefine);
+        if (line.size() > 8 && line.compare(0, 8, "#define ") == 0)
+        {
+            int afterKey = line.find(' ', 9);
             if (afterKey == -1)
             {
                 DEBUG(lineNumber << ". No valid key found after #define!"); ERROR
@@ -178,37 +206,27 @@ int main(int argc, char** argv)
             }
             else
             {
+                outPutLine = false;
                 string key = line.substr(8, afterKey - 8);
                 string value = line.substr(afterKey + 1);
-                DEBUG(lineNumber << ". #define key: " << key << " value: " << value); VERBOSE
+                DEBUG(lineNumber << ". #define key: <" << key << "> value: <" << value << ">"); VERBOSE
                 def d;
                 d.key = key;
                 d.value = value;
                 defs.push_back(d);
             }
         }
-        else if (line.size() > 7 && line.compare(0, 7, "#undef ") == 0)
-        {
-            int afterKey = line.find(' ', 7);
-            if (afterKey == -1) {
-                DEBUG(lineNumber << ". No valid key found after #undef!"); ERROR
-                fileOut << line;
-                if (fileIn.eof())
-                    break;
-                fileOut << endl;
-            }
-            else
-            {
-                string key = line.substr(7, afterKey - 7);
-                DEBUG(lineNumber << ". #undef key: " << key); VERBOSE
-            }
-        }
-        else
+        
+        if(outPutLine)
         {
             fileOut << line;
             if (fileIn.eof())
                 break;
             fileOut << endl;
+        }
+        else
+        {
+            outPutLine = true;
         }
         lineNumber++;
     }
@@ -216,7 +234,9 @@ int main(int argc, char** argv)
     // close files
     fileIn.close();
     fileOut.close();
+
     WriteDebugSum(args, debugCounts);
+    
     system("pause");
     return 0;
 }

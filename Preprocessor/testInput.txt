@@ -13,6 +13,9 @@ ffff 65 1234567
 .. #define asdf
 d#define adsa
 end
+#undef 1 
+1
+11
 #define 
 #define a
 #define b
