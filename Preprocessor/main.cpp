@@ -1,13 +1,8 @@
 #include "main.h"
 
-int processArg(int argc, char** argv, arg& args)
+void processArg(int argc, char** argv, arg& args)
 {
-    // show args
-    cout << "Argc: " << argc << endl;
     vector<string> arg(argv, argv + argc);
-    cout << "Argv:" << endl;
-    for (int i = 0; i < argc; i++)
-        cout << i << ". " << arg[i] << endl;
 
     // set args
     for (int i = 1; i < argc; i++)
@@ -48,13 +43,17 @@ int processArg(int argc, char** argv, arg& args)
     }
 
     // print args
-    if (!args.fileInput.empty())
-        cout << "File input: " << args.fileInput << endl;
+    if (!args.fileInput.empty()) {
+        DEBUG( "File input: " + args.fileInput); INFORMATION
+    }
     else
+    {
+        DEBUG("No file input!"); ERROR
         throw invalid_argument("No file input!");
+    }
     if (args.fileOutput.empty())
         args.fileOutput = "out_" + args.fileInput;
-    cout << "File output: " << args.fileOutput << endl;
+    DEBUG("File output: " + args.fileOutput); INFORMATION
 }
 
 void incI(int& i, int argc)
@@ -94,7 +93,8 @@ void replaceIf(string& line, int lineNumber, list<def>& defs, bool spaces = fals
 
                 // do the replace
                 line.replace(lineIndex, it->key.size(), it->value);
-                cout << lineNumber << ". Replace lineIndex: " << lineIndex << " key: " << it->key << " value: " << it->value << endl;
+
+                DEBUG(lineNumber << ". Replace lineIndex: " << lineIndex << " key: " << it->key << " value: " << it->value); VERBOSE
             }
             else {
                 break;
@@ -103,9 +103,53 @@ void replaceIf(string& line, int lineNumber, list<def>& defs, bool spaces = fals
     }
 }
 
+void WriteDebug(arg& args, debugCount& count, DebugLevel level, string message){
+    if (args.debugLevel >= (int8_t)level) {
+        switch (level)
+        {
+        case DebugLevel::Error:
+            cout << "ERROR\t\t";
+            count.error++;
+            break;
+        case DebugLevel::Warning:
+            cout << "WARNING\t\t";
+            count.warning++;
+            break;
+        case DebugLevel::Information:
+            cout << "INFORMATION\t";
+            count.information++;
+            break;
+        case DebugLevel::Verbose:
+            cout << "VERBOSE\t\t";
+            count.verbose++;
+            break;
+        default:
+            break;
+        }
+        cout <<  message << endl;
+    }
+}
+
+void WriteDebugSum(arg& args, debugCount& count) {
+    if (args.debugLevel >= (int8_t)DebugLevel::Error) {
+        cout << endl << "Debug Summary" << endl;
+        cout << "ERROR:\t\t" << count.error << endl;
+    }
+    if (args.debugLevel >= (int8_t)DebugLevel::Warning) {
+        cout << "WARNING:\t" << count.warning << endl;
+    }
+    if (args.debugLevel >= (int8_t)DebugLevel::Information) {
+        cout << "INFORMATION:\t" << count.information << endl;
+    }
+    if (args.debugLevel >= (int8_t)DebugLevel::Verbose) {
+        cout << "VERBOSE:\t" << count.verbose << endl;
+    }
+}
+
+
 int main(int argc, char** argv)
 {
-    arg args;
+
     processArg(argc, argv, args);
 
     // open files
@@ -126,7 +170,7 @@ int main(int argc, char** argv)
             int afterKey = line.find(' ', 8);
             if (afterKey == -1)
             {
-                cout << lineNumber << ". ERROR no valid key found after #define!" << endl;
+                DEBUG(lineNumber << ". No valid key found after #define!"); ERROR
                 fileOut << line;
                 if (fileIn.eof())
                     break;
@@ -136,7 +180,7 @@ int main(int argc, char** argv)
             {
                 string key = line.substr(8, afterKey - 8);
                 string value = line.substr(afterKey + 1);
-                cout << lineNumber << ". #define key: " << key << " value: " << value << endl;
+                DEBUG(lineNumber << ". #define key: " << key << " value: " << value); VERBOSE
                 def d;
                 d.key = key;
                 d.value = value;
@@ -145,7 +189,19 @@ int main(int argc, char** argv)
         }
         else if (line.size() > 7 && line.compare(0, 7, "#undef ") == 0)
         {
-            cout << lineNumber << ". #undef" << endl;
+            int afterKey = line.find(' ', 7);
+            if (afterKey == -1) {
+                DEBUG(lineNumber << ". No valid key found after #undef!"); ERROR
+                fileOut << line;
+                if (fileIn.eof())
+                    break;
+                fileOut << endl;
+            }
+            else
+            {
+                string key = line.substr(7, afterKey - 7);
+                DEBUG(lineNumber << ". #undef key: " << key); VERBOSE
+            }
         }
         else
         {
@@ -160,6 +216,7 @@ int main(int argc, char** argv)
     // close files
     fileIn.close();
     fileOut.close();
-
+    WriteDebugSum(args, debugCounts);
+    system("pause");
     return 0;
 }

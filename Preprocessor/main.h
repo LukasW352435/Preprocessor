@@ -12,8 +12,16 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <sstream>
 #include <fstream>
 #include <list>
+
+#define DEBUG(message) stringstream ss; ss << message
+#define WRITEDEBUG(level) WriteDebug(args,debugCounts,DebugLevel::level, ss.str())
+#define ERROR WRITEDEBUG(Error);
+#define WARNING(Warning);
+#define INFORMATION WRITEDEBUG(Information);
+#define VERBOSE WRITEDEBUG(Verbose);
 
 using namespace std;
 
@@ -30,8 +38,32 @@ struct arg {
     bool spacesBeforeAfterDefine = false;
 };
 
-int processArg(int argc, char** argv, arg& args);
+arg args;
+
+enum class DebugLevel : int8_t
+{
+    Error = 1,
+    Warning = 2,
+    Information = 3,
+    Verbose = 4,
+};
+
+struct debugCount
+{
+    int error = 0;
+    int warning = 0;
+    int information = 0;
+    int verbose = 0;
+};
+
+debugCount debugCounts;
+
+void processArg(int argc, char** argv, arg& args);
 
 void incI(int& i, int argc);
 
 void replaceIf(string& line, int lineNumber, list<def>& defs, bool spaces);
+
+void WriteDebug(arg& args, debugCount& count , DebugLevel level, string message);
+
+void WriteDebugSum(arg& args, debugCount& count);

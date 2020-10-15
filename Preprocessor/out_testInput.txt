@@ -6,6 +6,7 @@ a
 5
 sechs abc abc
 ffff abc a234567
+#undef 7
 .. #define asdf
 d#define adsa
 end

@@ -1,5 +1,6 @@
 #define 1 a
 #undef
+#undef  
 1
 2
 #define3
