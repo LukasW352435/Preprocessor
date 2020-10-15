@@ -3,6 +3,7 @@
 // -fi <string filename input>
 // -fo <string filename output>
 // -d <int debug level> // 0 nothing (default), 1 error, 2 warning, 3 information, 4 verbose 
+// -fd <string filename> // TODO outputs the debug messages in a file
 // -s // spaces in front/back of define
 
 // #include
@@ -18,10 +19,10 @@
 
 #define DEBUG(message) stringstream ss; ss << message
 #define WRITEDEBUG(level) WriteDebug(args,debugCounts,DebugLevel::level, ss.str())
-#define ERROR WRITEDEBUG(Error);
-#define WARNING WRITEDEBUG(Warning);
-#define INFORMATION WRITEDEBUG(Information);
-#define VERBOSE WRITEDEBUG(Verbose);
+#define ERROR WRITEDEBUG(Error)
+#define WARNING WRITEDEBUG(Warning)
+#define INFORMATION WRITEDEBUG(Information)
+#define VERBOSE WRITEDEBUG(Verbose)
 
 using namespace std;
 

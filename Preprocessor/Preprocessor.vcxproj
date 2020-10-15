@@ -145,6 +145,7 @@
     <ClInclude Include="main.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="include_1.txt" />
     <Text Include="out_testInput.txt" />
     <Text Include="testInput.txt" />
   </ItemGroup>
