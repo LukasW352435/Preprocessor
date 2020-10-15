@@ -170,7 +170,7 @@ int main(int argc, char** argv)
         {
             int afterKey = line.find(' ', 8);
             if (afterKey == -1) {
-                DEBUG(lineNumber << ". No valid key found after #undef!"); ERROR
+                DEBUG(lineNumber << ". No valid key found after #undef!"); WARNING
                 fileOut << line;
                 if (fileIn.eof())
                     break;
@@ -198,7 +198,7 @@ int main(int argc, char** argv)
             int afterKey = line.find(' ', 9);
             if (afterKey == -1)
             {
-                DEBUG(lineNumber << ". No valid key found after #define!"); ERROR
+                DEBUG(lineNumber << ". No valid key found after #define!"); WARNING
                 fileOut << line;
                 if (fileIn.eof())
                     break;

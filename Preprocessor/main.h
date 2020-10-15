@@ -19,7 +19,7 @@
 #define DEBUG(message) stringstream ss; ss << message
 #define WRITEDEBUG(level) WriteDebug(args,debugCounts,DebugLevel::level, ss.str())
 #define ERROR WRITEDEBUG(Error);
-#define WARNING(Warning);
+#define WARNING WRITEDEBUG(Warning);
 #define INFORMATION WRITEDEBUG(Information);
 #define VERBOSE WRITEDEBUG(Verbose);
 
