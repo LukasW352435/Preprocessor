@@ -37,5 +37,8 @@
     <Text Include="include_1.txt">
       <Filter>Test Files</Filter>
     </Text>
+    <Text Include="include_2.txt">
+      <Filter>Test Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

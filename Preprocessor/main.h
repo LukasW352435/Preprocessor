@@ -55,6 +55,13 @@ struct debugCount
     int verbose = 0;
 } debugCounts;
 
+struct inputFile {
+    inputFile(string path, int lineNumber);
+    string path;
+    int lineNumber;
+    ifstream::pos_type pos;
+};
+
 void processArg(int argc, char** argv, arg& args);
 
 void incI(int& i, int argc);

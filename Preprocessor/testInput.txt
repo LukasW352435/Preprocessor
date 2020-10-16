@@ -12,6 +12,7 @@
 #include <include_1.txt>
 #define3
 #undef4
+hello
 5
 #define 65 abc
 sechs 65 65

@@ -1,5 +1,7 @@
 #include "main.h"
 
+inputFile::inputFile(string path, int lineNumber) : path(path), lineNumber(lineNumber){}
+
 void processArg(int argc, char** argv, arg& args)
 {
 	vector<string> arg(argv, argv + argc);
@@ -144,12 +146,12 @@ void WriteDebugSum(arg& args, debugCount& count) {
 	}
 }
 
-
 int main(int argc, char** argv)
 {
 	processArg(argc, argv, args);
+	ifstream fileIn;
 #pragma region open files
-	ifstream fileIn(args.fileInput);
+	fileIn = ifstream(args.fileInput);
 	if (!fileIn.is_open())
 	{
 		DEBUG("Can not open input file <" << args.fileInput << ">"); ERROR;
@@ -164,61 +166,98 @@ int main(int argc, char** argv)
 #pragma endregion
 
 	list<def> defs;
+	vector<inputFile> inputFiles;
 	string line;
 	int lineNumber = 1;
 	bool outPutLine = true;
 
-	while (getline(fileIn, line))
-	{
-
-		// check for definitions in the line
-		if (line.size() > 11 && line.compare(0, 9, "#include ") == 0) {
-			// 12 = sizeof("#include ") + "<" + ">" + (at least on char for the path)
-			// 1 get file path 
-			// syntax:
-			// #include <filepath>
-			outPutLine = false;
-			int front = line.find('<', 9);
-			int back = line.find('>', 11);
-			string path = line.substr(front + 1, back - front - 1);
-			DEBUG(lineNumber << ". #include path: <" << path << ">"); VERBOSE;
-			// 2 try to open the new file
-			ifstream fi(path);
-			// 3 check for errors
-			if (!fi.is_open())
-			{
-				DEBUG(lineNumber << ". Can not open file <" << path << ">"); ERROR;
-			}
-			fi.close();
-			// 4 read the file and copy it to the output file by changing fileIn
-			// TODO continue hear
-		}
-		if (line.size() > 7 && line.compare(0, 7, "#undef ") == 0)
+	inputFile f(args.fileInput, lineNumber);
+	inputFiles.push_back(f);
+	do {
+		while (getline(fileIn, line))
 		{
-			outPutLine = false;
-			string key = line.substr(7, line.size() - 7);
-			DEBUG(lineNumber << ". #undef key: <" << key << ">"); VERBOSE;
-			bool remove = false;
-			for (auto it = defs.begin(); it != defs.end(); ) {
-				if ((it->key).compare(key) == 0) {
-					it = defs.erase(it);
-					remove = true;
-					DEBUG(lineNumber << ". Remove key: <" << key << ">"); VERBOSE;
+			lineNumber = inputFiles.back().lineNumber;
+
+			// check for definitions in the line
+			if (line.size() > 11 && line.compare(0, 9, "#include ") == 0) {
+				// 12 = sizeof("#include ") + "<" + ">" + (at least on char for the path)
+				// TODO Recursion????
+				int front = line.find('<', 9);
+				int back = line.find('>', 11);
+				string path = line.substr(front + 1, back - front - 1);
+				DEBUG(lineNumber << ". #include path: <" << path << ">"); VERBOSE;
+				inputFiles.back().pos = fileIn.tellg();
+				fileIn.close();
+				fileIn = ifstream(path);
+				if (!fileIn.is_open())
+				{
+					DEBUG(lineNumber << ". Can not open file <" << path << ">"); ERROR;
+					fileIn = ifstream(inputFiles.back().path);
+					if (!fileIn.is_open()) {
+						DEBUG(lineNumber << ". Can not open file <" << path << ">"); ERROR;
+						return EXIT_FAILURE;
+					}
+					fileIn.clear();
+					fileIn.seekg(inputFiles.back().pos);
+				}
+				else {
+					// push the new path onto inputFiles
+					DEBUG(lineNumber << ". Change file to <" << path << ">"); VERBOSE;
+					inputFiles.back().lineNumber = ++lineNumber;
+					inputFile f(path, 1);
+					inputFiles.push_back(f);
+					continue;
+				}
+			}
+
+			if (line.size() > 7 && line.compare(0, 7, "#undef ") == 0)
+			{
+				outPutLine = false;
+				string key = line.substr(7, line.size() - 7);
+				DEBUG(lineNumber << ". #undef key: <" << key << ">"); VERBOSE;
+				bool remove = false;
+				for (auto it = defs.begin(); it != defs.end(); ) {
+					if ((it->key).compare(key) == 0) {
+						it = defs.erase(it);
+						remove = true;
+						DEBUG(lineNumber << ". Remove key: <" << key << ">"); VERBOSE;
+					}
+					else
+						it++;
+				}
+				if (!remove) {
+					DEBUG(lineNumber << ". Unnecessary #undef key: <" << key << ">"); WARNING;
+				}
+			}
+			replaceIf(line, lineNumber, defs, args.spacesBeforeAfterDefine);
+			if (line.size() > 8 && line.compare(0, 8, "#define ") == 0)
+			{
+				// TODO Recursion????
+				int afterKey = line.find(' ', 9);
+				if (afterKey == -1)
+				{
+					DEBUG(lineNumber << ". No valid key found after #define!"); WARNING;
+					fileOut << line;
+					if (fileIn.eof())
+						break;
+					fileOut << endl;
 				}
 				else
-					it++;
+				{
+					outPutLine = false;
+					string key = line.substr(8, afterKey - 8);
+					string value = line.substr(afterKey + 1);
+					DEBUG(lineNumber << ". #define key: <" << key << "> value: <" << value << ">"); VERBOSE;
+					def d;
+					d.key = key;
+					d.value = value;
+					defs.push_back(d);
+				}
 			}
-			if (!remove) {
-				DEBUG(lineNumber << ". Unnecessary #undef key: <" << key << ">"); WARNING;
-			}
-		}
-		replaceIf(line, lineNumber, defs, args.spacesBeforeAfterDefine);
-		if (line.size() > 8 && line.compare(0, 8, "#define ") == 0)
-		{
-			int afterKey = line.find(' ', 9);
-			if (afterKey == -1)
+			
+			// output the line
+			if (outPutLine)
 			{
-				DEBUG(lineNumber << ". No valid key found after #define!"); WARNING;
 				fileOut << line;
 				if (fileIn.eof())
 					break;
@@ -226,37 +265,31 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				outPutLine = false;
-				string key = line.substr(8, afterKey - 8);
-				string value = line.substr(afterKey + 1);
-				DEBUG(lineNumber << ". #define key: <" << key << "> value: <" << value << ">"); VERBOSE;
-				def d;
-				d.key = key;
-				d.value = value;
-				defs.push_back(d);
+				outPutLine = true;
 			}
-		}
 
-		if (outPutLine)
+			inputFiles.back().lineNumber++;
+		} // end while getLine
+
+		// close current file and pop the next one from inputFiles
+		fileIn.close();
+		inputFiles.pop_back();
+		if (inputFiles.empty()) break;
+		fileIn = ifstream(inputFiles.back().path);
+		if (!fileIn.is_open())
 		{
-			fileOut << line;
-			if (fileIn.eof())
-				break;
-			fileOut << endl;
+			DEBUG(lineNumber << ". Can not open file <" << inputFiles.back().path << ">"); ERROR;
+			return EXIT_FAILURE;
 		}
-		else
-		{
-			outPutLine = true;
-		}
-		lineNumber++;
-	}
+		fileIn.clear();
+		fileIn.seekg(inputFiles.back().pos);
+		DEBUG(lineNumber << ". Change file to <" << inputFiles.back().path << "> lineNumber: " << inputFiles.back().lineNumber << " pos: " << inputFiles.back().pos); VERBOSE;
+	} while (!inputFiles.empty());
 
 	// close files
-	fileIn.close();
 	fileOut.close();
 
 	WriteDebugSum(args, debugCounts);
-
 	system("pause");
 	return EXIT_SUCCESS;
 }

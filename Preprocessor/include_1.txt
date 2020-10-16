@@ -1,0 +1,5 @@
+test 1
+test 2
+#include <include_2.txt>
+#include <include_2.txt>
+lol
